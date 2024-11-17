@@ -3,6 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
+// Function to validate URLs (allowing HTTP, HTTPS, YouTube, etc.)
+function isValidUrl(url) {
+    // This regex allows HTTP(s) URLs and ignores things like chrome-extension or mailto
+    const regex = /^(https?:\/\/)([^\s$.?#].[^\s]*)$/;
+    return regex.test(url);
+}
+
 (async () => {
     const jsonFiles = fs.readdirSync('./').filter((file) => file.endsWith('.json'));
 
@@ -59,15 +66,25 @@ const readline = require('readline');
     });
 
     for (const url of urls) {
-        
+        if (!isValidUrl(url)) {
+            console.log(`Skipping invalid URL: ${url}`);
+            continue;
+        }
+
         if (url.startsWith('chrome-extension://')) {
             console.log(`Skipping extension URL: ${url}`);
             continue;
         }
+
         const page = await browser.newPage();
-        await page.goto(url);
-        console.log(`Opened: ${url}`);
+
+        try {
+            await page.goto(url);
+            console.log(`Opened: ${url}`);
+        } catch (error) {
+            console.error(`Failed to navigate to URL: ${url} - Error: ${error.message}`);
+        }
     }
 
-    console.log('All URLs have been opened.');
+    console.log('All URLs have been processed.');
 })();
