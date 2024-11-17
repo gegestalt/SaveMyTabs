@@ -4,4 +4,3 @@ Open Chrome on Debugger Mode:
 Launch the Script:
 - node saveMyTabs.js, node openMyTabs.js
 
-Once there is a valid JSON file which can be opened, openMyTabs.js launches GoogleChrome in debbuging mode automatically. 
