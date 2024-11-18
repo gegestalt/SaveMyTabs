@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-// Function to validate URLs (allowing HTTP, HTTPS, YouTube, etc.)
 function isValidUrl(url) {
     // This regex allows HTTP(s) URLs and ignores things like chrome-extension or mailto
     const regex = /^(https?:\/\/)([^\s$.?#].[^\s]*)$/;
