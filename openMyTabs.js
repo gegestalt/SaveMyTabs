@@ -4,7 +4,6 @@ const path = require('path');
 const readline = require('readline');
 
 function isValidUrl(url) {
-    // This regex allows HTTP(s) URLs and ignores things like chrome-extension or mailto
     const regex = /^(https?:\/\/)([^\s$.?#].[^\s]*)$/;
     return regex.test(url);
 }
@@ -49,10 +48,20 @@ function isValidUrl(url) {
     }
 
     const jsonFilePath = path.resolve('./', selectedFile);
-    const urls = JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8'));
+    const data = JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8'));
 
-    if (!Array.isArray(urls) || urls.length === 0) {
-        console.error(`The JSON file (${selectedFile}) does not contain a valid list of URLs.`);
+    let urls;
+    if (Array.isArray(data)) {
+        urls = data.map((item) => (typeof item === 'object' && item.url ? item.url : item)).filter(isValidUrl);
+    } else if (typeof data === 'object' && data.url) {
+        urls = [data.url];
+    } else {
+        console.error(`The JSON file (${selectedFile}) does not contain valid URL data.`);
+        process.exit(1);
+    }
+
+    if (urls.length === 0) {
+        console.error(`No valid URLs found in the JSON file (${selectedFile}).`);
         process.exit(1);
     }
 
@@ -60,18 +69,13 @@ function isValidUrl(url) {
 
     const browser = await puppeteer.connect({
         browserURL: 'http://localhost:9222',
-        defaultViewport: null, 
-        ignoreHTTPSErrors: true, 
+        defaultViewport: null,
+        ignoreHTTPSErrors: true,
     });
 
     for (const url of urls) {
         if (!isValidUrl(url)) {
             console.log(`Skipping invalid URL: ${url}`);
-            continue;
-        }
-
-        if (url.startsWith('chrome-extension://')) {
-            console.log(`Skipping extension URL: ${url}`);
             continue;
         }
 
